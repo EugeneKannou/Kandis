@@ -1,4 +1,4 @@
-package main
+package resp
 
 import (
 	"bufio"
@@ -13,6 +13,7 @@ const (
 	SimpleString Type = '+'
 	BulkString   Type = '$'
 	Array        Type = '*'
+	Integer      Type = ':'
 )
 
 type Value struct {
@@ -27,6 +28,25 @@ func (v Value) Array() []Value {
 	}
 
 	return []Value{}
+}
+
+func (v Value) Integer() int {
+	if v.typ == Integer {
+		integer, err := strconv.Atoi(string(v.bytes))
+		if err == nil {
+			return integer
+		}
+	}
+
+	return 0
+}
+
+func (v Value) Byte() []byte {
+	if v.typ != Array {
+		return v.bytes
+	}
+
+	return []byte{}
 }
 
 func (v Value) String() string {
@@ -50,6 +70,8 @@ func DeserializeRESP(buffStream *bufio.Reader) (Value, error) {
 		return DeserializeBulkString(buffStream)
 	case "*":
 		return DeserializeArray(buffStream)
+	case ":":
+		return DeserializeInteger(buffStream)
 	}
 
 	return Value{}, fmt.Errorf("invalid RESP data type byte: %s", string(typeByte))
@@ -87,6 +109,18 @@ func DeserializeBulkString(byteStream *bufio.Reader) (Value, error) {
 	return Value{
 		typ:   BulkString,
 		bytes: readBytes[:count],
+	}, nil
+}
+
+func DeserializeInteger(byteStream *bufio.Reader) (Value, error) {
+	readBytes, err := readUntilCRLF(byteStream)
+	if err != nil {
+		return Value{}, err
+	}
+
+	return Value{
+		typ:   Integer,
+		bytes: readBytes,
 	}, nil
 }
 
