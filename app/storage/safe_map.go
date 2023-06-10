@@ -9,6 +9,10 @@ type SafeMap struct {
 	m  map[string][]byte
 }
 
+func (s *SafeMap) GetLen() int {
+	return len(s.m)
+}
+
 func NewSafeMap() *SafeMap {
 	return &SafeMap{
 		m: make(map[string][]byte),

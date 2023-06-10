@@ -83,9 +83,12 @@ func handleConnection(conn net.Conn, db *storage.SafeMap) {
 			} else {
 				conn.Write([]byte(fmt.Sprintf("-Expected 1 arg, got %v\r\n", len(args))))
 			}
-
+		case "llen":
+			conn.Write([]byte(fmt.Sprintf(":%v\r\n", db.GetLen())))
 		default:
 			conn.Write([]byte("-unknown command '" + command + "'\r\n"))
 		}
 	}
 }
+
+//todo: lpush rpush lpop rpop
